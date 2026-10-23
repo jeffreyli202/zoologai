@@ -1,0 +1,57 @@
+@import "tailwindcss";
+
+:root {
+  /* Nature-inspired palette: sage, cream, soft neutrals */
+  --cream: #f6f2e9;
+  --cream-deep: #ebe4d4;
+  --surface: #fffdf8;
+  --sage-50: #f1f5ef;
+  --sage-100: #dde8d9;
+  --sage-300: #a3bda6;
+  --sage-500: #6d8f72;
+  --sage-700: #4a6a50;
+  --sage-900: #2d3d32;
+  --ink: #2a322c;
+  --muted: #5e6a61;
+  --border: #d9d0be;
+  --danger: #9b4a3c;
+  --danger-soft: #f6e8e4;
+
+  --background: var(--cream);
+  --foreground: var(--ink);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-cream: var(--cream);
+  --color-cream-deep: var(--cream-deep);
+  --color-surface: var(--surface);
+  --color-sage-50: var(--sage-50);
+  --color-sage-100: var(--sage-100);
+  --color-sage-300: var(--sage-300);
+  --color-sage-500: var(--sage-500);
+  --color-sage-700: var(--sage-700);
+  --color-sage-900: var(--sage-900);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --font-sans: var(--font-figtree);
+  --font-display: var(--font-fraunces);
+}
+
+body {
+  background:
+    radial-gradient(ellipse 80% 50% at 10% -10%, rgba(109, 143, 114, 0.18), transparent 55%),
+    radial-gradient(ellipse 60% 40% at 100% 0%, rgba(235, 228, 212, 0.9), transparent 50%),
+    var(--cream);
+  color: var(--ink);
+  font-family: var(--font-figtree), ui-sans-serif, sans-serif;
+}
+
+::selection {
+  background: var(--sage-100);
+  color: var(--sage-900);
+}
