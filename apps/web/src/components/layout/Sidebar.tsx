@@ -6,7 +6,10 @@ import { usePathname } from "next/navigation";
 const NAV_ITEMS = [
   { href: "/", label: "Dashboard" },
   { href: "/animals", label: "Animals" },
+  { href: "/videos", label: "Videos" },
   { href: "/observations", label: "Observations" },
+  { href: "/analytics", label: "Analytics" },
+  { href: "/monitoring", label: "Monitoring" },
   { href: "/journal", label: "Journal" },
 ] as const;
 
@@ -25,7 +28,7 @@ export function Sidebar() {
           ZooLog AI
         </p>
         <p className="mt-1 text-xs leading-5 text-muted">
-          Calm observation journals
+          Camera observation journals
         </p>
       </div>
 
@@ -53,7 +56,7 @@ export function Sidebar() {
       </nav>
 
       <p className="mt-auto hidden pt-10 text-xs leading-5 text-muted md:block">
-        Step 3 — frontend dashboard
+        Step 10 — authorized camera monitoring
       </p>
     </aside>
   );
