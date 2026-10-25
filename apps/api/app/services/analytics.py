@@ -41,9 +41,9 @@ from app.services.gemini_client import (
 )
 
 AGGREGATION_EXPLANATION = (
-    "Counts are tallies of saved Observation rows (one per analyzed frame), "
-    "grouped by UTC calendar day or UTC hour of observed_at. "
-    "These are sparse samples from uploaded video — not continuous monitoring. "
+    "Counts are tallies of saved Observation rows (video frames or camera "
+    "captures), grouped by UTC calendar day or UTC hour of observed_at. "
+    "These are sparse samples — not continuous monitoring. "
     "Do not read a count as the share of an animal's entire day. "
     "Days or hours with zero observations mean no samples were recorded "
     "(unknown activity), not that the animal was inactive."
@@ -144,10 +144,11 @@ def build_behavior_analytics(
         db, animal_id=animal_id, start_date=start_date, end_date=end_date
     )
 
-    # Missing analysis = extracted frames in the window with no Observation row.
+    # Missing analysis = extracted video frames in the window with no Observation.
     observed_frame_ids = {
         row
         for row in db.scalars(select(Observation.frame_id)).all()
+        if row is not None
     }
     missing_analyses = sum(1 for frame in frames if frame.id not in observed_frame_ids)
     frames_in_range = len(frames)
@@ -199,6 +200,8 @@ def build_behavior_analytics(
             visible_evidence=obs.visible_evidence,
             video_id=obs.video_id,
             frame_id=obs.frame_id,
+            camera_source_id=obs.camera_source_id,
+            camera_capture_id=obs.camera_capture_id,
         )
         for obs in observations
     ]

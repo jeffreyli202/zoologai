@@ -146,8 +146,11 @@ export type TimelinePoint = {
   video_timestamp_seconds: number;
   description: string | null;
   visible_evidence: string | null;
-  video_id: number;
-  frame_id: number;
+  /** Null for camera-capture observations (not from an uploaded video). */
+  video_id: number | null;
+  frame_id: number | null;
+  camera_source_id?: number | null;
+  camera_capture_id?: number | null;
 };
 
 export type CoverageStats = {

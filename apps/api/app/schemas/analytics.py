@@ -29,8 +29,11 @@ class TimelinePoint(BaseModel):
     video_timestamp_seconds: float
     description: Optional[str] = None
     visible_evidence: Optional[str] = None
-    video_id: int
-    frame_id: int
+    # Null when the observation came from a live camera capture (not a video frame).
+    video_id: Optional[int] = None
+    frame_id: Optional[int] = None
+    camera_source_id: Optional[int] = None
+    camera_capture_id: Optional[int] = None
 
 
 class CoverageStats(BaseModel):
