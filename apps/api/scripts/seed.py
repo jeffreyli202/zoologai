@@ -1,5 +1,5 @@
 """
-Seed the database with one example animal.
+Seed the database with one example animal (Amur Carp — fish demo profile).
 
 Run from apps/api (with the venv active):
 
@@ -23,9 +23,13 @@ from app.models import Animal
 
 
 EXAMPLE_ANIMAL = {
-    "name": "Mara",
-    "species": "Panthera leo",
-    "description": "Adult lioness in the savannah enclosure. Example seed animal for local development.",
+    "name": "Amur Carp",
+    "species": "Cyprinus rubrofuscus",
+    "description": (
+        "Example fish profile for local development. Hourly journals are only "
+        "written when this fish is actually observed — empty/not_visible frames "
+        "do not create a journal."
+    ),
 }
 
 
