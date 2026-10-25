@@ -202,12 +202,17 @@ export function VideosPageClient() {
 
   useEffect(() => {
     void loadVideos();
+    const timers = pollTimers.current;
     return () => {
-      for (const id of Object.keys(pollTimers.current)) {
-        stopPolling(Number(id));
+      for (const id of Object.keys(timers)) {
+        const handle = timers[Number(id)];
+        if (handle) {
+          window.clearInterval(handle);
+          delete timers[Number(id)];
+        }
       }
     };
-  }, [loadVideos, stopPolling]);
+  }, [loadVideos]);
 
   async function handleExtract(videoId: number) {
     setExtractingId(videoId);

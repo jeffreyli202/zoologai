@@ -13,6 +13,14 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
   ]),
+  {
+    rules: {
+      // Client pages fetch from FastAPI on mount and hydrate UTC clocks after
+      // prerender. That pattern uses setState from effects; the React Compiler
+      // lint rule is aimed at derived-state anti-patterns, not API loads.
+      "react-hooks/set-state-in-effect": "off",
+    },
+  },
 ]);
 
 export default eslintConfig;
