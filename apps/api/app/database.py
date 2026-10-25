@@ -9,7 +9,12 @@ settings = get_settings()
 
 # check_same_thread=False is required for SQLite when FastAPI uses
 # the same connection across different request threads.
-connect_args = {"check_same_thread": False} if settings.database_url.startswith("sqlite") else {}
+# timeout helps when the monitor thread and HTTP requests contend briefly.
+connect_args = (
+    {"check_same_thread": False, "timeout": 30}
+    if settings.database_url.startswith("sqlite")
+    else {}
+)
 
 engine = create_engine(settings.database_url, connect_args=connect_args)
 

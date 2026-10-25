@@ -25,6 +25,28 @@ apps/web/.turbo/
 *.sqlite
 *.sqlite3
 
+# Cached public data dumps (seed scripts fetch live)
+apps/api/data/*.json
+
+# Private uploaded videos (keep folder structure via .gitkeep)
+apps/api/uploads/videos/*
+!apps/api/uploads/videos/.gitkeep
+
+# Extracted frames
+apps/api/uploads/frames/**
+!apps/api/uploads/frames/.gitkeep
+!apps/api/uploads/frames/**/.gitkeep
+
+# Camera monitor captures (runtime); keep sample folder structure
+apps/api/uploads/camera_captures/**
+!apps/api/uploads/camera_captures/.gitkeep
+!apps/api/uploads/camera_samples/
+!apps/api/uploads/camera_samples/**
+
+# Authorized live frame extraction jobs
+apps/api/uploads/extracted_frames/**
+!apps/api/uploads/extracted_frames/.gitkeep
+
 # IDE / OS
 .idea/
 .vscode/
