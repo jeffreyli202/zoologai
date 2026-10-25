@@ -8,6 +8,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database import Base
 
 if TYPE_CHECKING:
+    from app.models.camera_source import CameraSource
     from app.models.daily_journal import DailyJournal
     from app.models.observation import Observation
     from app.models.video import Video
@@ -25,3 +26,4 @@ class Animal(Base):
     videos: Mapped[list[Video]] = relationship(back_populates="animal")
     observations: Mapped[list[Observation]] = relationship(back_populates="animal")
     daily_journals: Mapped[list[DailyJournal]] = relationship(back_populates="animal")
+    camera_sources: Mapped[list[CameraSource]] = relationship(back_populates="animal")
