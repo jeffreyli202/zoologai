@@ -38,6 +38,11 @@ def main() -> int:
         print("Missing expected routes:", ", ".join(missing), file=sys.stderr)
         return 1
 
+    from app.config import get_settings
+
+    settings = get_settings()
+    assert settings.cors_origin_list(), "CORS_ORIGINS must list at least one origin"
+
     print(f"OK — {len(paths)} OpenAPI paths; required endpoints present.")
     return 0
 

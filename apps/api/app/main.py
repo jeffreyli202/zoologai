@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.config import get_settings
 from app.routers import (
     analytics,
     animals,
@@ -33,13 +34,13 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# Allow the local Next.js dev server to call this API from the browser.
+_settings = get_settings()
+# Local Next.js, Vercel production/custom domains (CORS_ORIGINS), and optional
+# preview regex (CORS_ORIGIN_REGEX, default *.vercel.app).
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-    ],
+    allow_origins=_settings.cors_origin_list(),
+    allow_origin_regex=_settings.cors_origin_regex or None,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

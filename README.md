@@ -303,6 +303,24 @@ Uploads (`videos/`, `frames/`, `camera_captures/`, `extracted_frames/`) and `*.d
 
 ---
 
+## Deployment (Vercel UI + Oracle API)
+
+Recommended split:
+
+| Piece | Host | Why |
+|-------|------|-----|
+| Next.js UI | **Vercel** | Free hobby tier; appears on GitHub **Deployments** |
+| FastAPI + SQLite + uploads + camera scheduler | **Oracle Cloud VM** | Always-on process + persistent disk |
+
+1. Deploy the API on Oracle with HTTPS (`api.yourdomain.com`).
+2. Set `CORS_ORIGINS` to your Vercel URL (preview URLs match `CORS_ORIGIN_REGEX`).
+3. Import the repo in Vercel with **Root Directory** `apps/web`.
+4. Set `NEXT_PUBLIC_API_URL=https://api.yourdomain.com` in Vercel.
+
+Full steps: **[docs/deploy-vercel-oracle.md](docs/deploy-vercel-oracle.md)**
+
+---
+
 ## License / attribution
 
 Local project. Optional seed data from iNaturalist must retain source attribution when used.

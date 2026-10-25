@@ -53,6 +53,17 @@ class Settings(BaseSettings):
     monitor_fetch_timeout_seconds: float = 20.0
     monitor_max_image_bytes: int = 8 * 1024 * 1024
 
+    # Browser origins allowed to call this API (comma-separated).
+    # Local Next.js + Vercel production / custom domain examples:
+    #   http://localhost:3000,https://zoologai.vercel.app,https://zoologai.example.com
+    cors_origins: str = "http://localhost:3000,http://127.0.0.1:3000"
+    # Regex for ephemeral Vercel preview URLs (https://<project>-<hash>-<team>.vercel.app).
+    # Set empty string in .env to disable: CORS_ORIGIN_REGEX=
+    cors_origin_regex: Optional[str] = r"https://.*\.vercel\.app"
+
+    def cors_origin_list(self) -> list[str]:
+        return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
+
 
 @lru_cache
 def get_settings() -> Settings:
