@@ -1,59 +1,87 @@
 "use client";
 
-/**
- * useState + useEffect live in client components.
- *
- * - useState: remember values that can change (animals list, loading, error).
- *   When state updates, React re-renders this component with the new values.
- * - useEffect: run side effects after render — here, fetch animals from the API
- *   when the page first mounts (empty dependency array []).
- */
-
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 
 import { AnimalProfileCard } from "@/components/dashboard/AnimalProfileCard";
+import { DashboardVideos } from "@/components/dashboard/DashboardVideos";
 import { JournalPreview } from "@/components/dashboard/JournalPreview";
 import { RecentObservations } from "@/components/dashboard/RecentObservations";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { StatePanel } from "@/components/ui/StatePanel";
-import { getAnimals } from "@/lib/api";
 import {
-  MOCK_JOURNAL_ENTRIES,
-  MOCK_OBSERVATIONS,
-  MOCK_STATS,
-} from "@/lib/mock-data";
-import type { Animal } from "@/lib/types";
+  getAnimals,
+  getCameras,
+  getJournals,
+  getObservationStats,
+  getObservations,
+} from "@/lib/api";
+import type {
+  Animal,
+  CameraSource,
+  DailyJournal,
+  Observation,
+  ObservationStats,
+} from "@/lib/types";
 
-type LoadState =
-  | { status: "loading" }
-  | { status: "error"; message: string }
-  | { status: "success"; animals: Animal[] };
+type DashboardData = {
+  animals: Animal[];
+  observations: Observation[];
+  observationStats: ObservationStats;
+  journals: DailyJournal[];
+  cameras: CameraSource[];
+};
 
 export function DashboardHome() {
-  // useState: start in "loading" until the first fetch finishes.
-  const [state, setState] = useState<LoadState>({ status: "loading" });
+  const [data, setData] = useState<DashboardData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  async function loadAnimals() {
-    setState({ status: "loading" });
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError(null);
     try {
-      const animals = await getAnimals();
-      setState({ status: "success", animals });
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Could not reach the API.";
-      setState({ status: "error", message });
+      const [animals, observations, observationStats, journals, cameras] =
+        await Promise.all([
+          getAnimals(),
+          getObservations({ limit: 8 }),
+          getObservationStats(),
+          getJournals(),
+          getCameras(),
+        ]);
+      setData({
+        animals,
+        observations,
+        observationStats,
+        journals,
+        cameras,
+      });
+    } catch (err) {
+      setData(null);
+      setError(
+        err instanceof Error ? err.message : "Could not load dashboard data.",
+      );
+    } finally {
+      setLoading(false);
     }
-  }
-
-  // useEffect: fetch once when this component appears on screen.
-  useEffect(() => {
-    void loadAnimals();
   }, []);
 
-  const featuredAnimal =
-    state.status === "success" && state.animals.length > 0
-      ? state.animals[0]
-      : null;
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  const animals = data?.animals ?? [];
+  const observations = data?.observations ?? [];
+  const observationStats = data?.observationStats ?? {
+    total: 0,
+    distinct_behaviors: 0,
+  };
+  const journals = data?.journals ?? [];
+  const cameras = data?.cameras ?? [];
+
+  const activeCameras = cameras.filter((c) => c.status === "running").length;
+  const featuredAnimal = animals[0] ?? null;
+  const recentJournals = journals.slice(0, 5);
 
   return (
     <div className="space-y-8">
@@ -65,98 +93,136 @@ export function DashboardHome() {
           ZooLog AI
         </h1>
         <p className="mt-4 text-base leading-7 text-muted">
-          A calm workspace for watching animal footage, noticing behaviors, and
-          writing daily observation journals. This dashboard shows live animal
-          records from your API, plus clearly labeled mock observation and
-          journal data until those endpoints are ready.
+          Live animals, camera captures, and hourly journals from your API —
+          observations only appear when vision actually saved a row.
         </p>
       </header>
+
+      {error ? (
+        <StatePanel
+          tone="danger"
+          title="Could not load dashboard"
+          message={error}
+          actionLabel="Try again"
+          onAction={() => void load()}
+        />
+      ) : null}
 
       <section aria-labelledby="stats-heading">
         <h2 id="stats-heading" className="sr-only">
           Statistics
         </h2>
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard
-            label="Total observations"
-            value={MOCK_STATS.totalObservations}
-            hint="From mock observation list"
-            isMock
+            label="Animals"
+            value={loading ? "…" : animals.length}
+            hint="Profiles in the database"
           />
           <StatCard
-            label="Behaviors detected"
-            value={MOCK_STATS.behaviorsDetected}
-            hint="Unique behaviors in mock data"
-            isMock
+            label="Observations"
+            value={loading ? "…" : observationStats.total}
+            hint={
+              loading
+                ? "Loading…"
+                : `${observationStats.distinct_behaviors} distinct behavior label${observationStats.distinct_behaviors === 1 ? "" : "s"}`
+            }
           />
           <StatCard
             label="Journal entries"
-            value={MOCK_STATS.journalEntries}
-            hint="From mock journal list"
-            isMock
+            value={loading ? "…" : journals.length}
+            hint="Hourly summaries saved so far"
+          />
+          <StatCard
+            label="Cameras"
+            value={loading ? "…" : cameras.length}
+            hint={
+              loading ? "Loading…" : `${activeCameras} monitoring now`
+            }
           />
         </div>
       </section>
 
       <section aria-labelledby="animals-heading" className="space-y-4">
-        <div>
-          <h2
-            id="animals-heading"
-            className="font-display text-xl text-sage-900"
+        <div className="flex flex-wrap items-end justify-between gap-2">
+          <div>
+            <h2
+              id="animals-heading"
+              className="font-display text-xl text-sage-900"
+            >
+              Animals
+            </h2>
+            <p className="mt-1 text-sm text-muted">
+              Discovered from monitoring or added manually
+            </p>
+          </div>
+          <Link
+            href="/animals"
+            className="text-sm font-medium text-sage-700 hover:text-sage-900"
           >
-            Animals from API
-          </h2>
-          <p className="mt-1 text-sm text-muted">
-            Live data from <code className="text-sage-700">GET /animals</code>
-          </p>
+            Manage animals →
+          </Link>
         </div>
 
-        {state.status === "loading" ? (
+        {loading ? (
           <StatePanel
             title="Loading animals…"
             message="Fetching records from the FastAPI backend."
           />
         ) : null}
 
-        {state.status === "error" ? (
-          <StatePanel
-            tone="danger"
-            title="Could not load animals"
-            message={state.message}
-            actionLabel="Try again"
-            onAction={() => void loadAnimals()}
-          />
-        ) : null}
-
-        {state.status === "success" && state.animals.length === 0 ? (
+        {!loading && !error && animals.length === 0 ? (
           <StatePanel
             title="No animals yet"
-            message="The database has no animal records. Seed the API or create one via /docs."
+            message="Start camera monitoring — vision creates animal profiles when it sees something — or add one on the Animals page."
           />
         ) : null}
 
-        {state.status === "success" && featuredAnimal ? (
+        {!loading && featuredAnimal ? (
           <div className="grid gap-4 md:grid-cols-2">
             <AnimalProfileCard animal={featuredAnimal} featured />
-            {state.animals.length > 1 ? (
+            {animals.length > 1 ? (
               <div className="grid gap-4">
-                {state.animals.slice(1, 3).map((animal) => (
+                {animals.slice(1, 3).map((animal) => (
                   <AnimalProfileCard key={animal.id} animal={animal} />
                 ))}
+                {animals.length > 3 ? (
+                  <p className="text-sm text-muted">
+                    +{animals.length - 3} more on{" "}
+                    <Link
+                      href="/animals"
+                      className="font-medium text-sage-700 hover:text-sage-900"
+                    >
+                      Animals
+                    </Link>
+                  </p>
+                ) : null}
               </div>
             ) : (
               <div className="rounded-2xl border border-dashed border-border bg-sage-50/40 p-5 text-sm leading-6 text-muted">
-                Add more animals in FastAPI <code>/docs</code> to see additional
-                profile cards here.
+                Only one animal so far. Monitoring can discover more as it
+                analyzes stills.
               </div>
             )}
           </div>
         ) : null}
       </section>
 
+      <DashboardVideos />
+
       <div className="grid gap-6 lg:grid-cols-2">
-        <RecentObservations observations={MOCK_OBSERVATIONS} />
-        <JournalPreview entries={MOCK_JOURNAL_ENTRIES} />
+        <RecentObservations
+          observations={observations}
+          loading={loading}
+          error={error}
+          onRetry={() => void load()}
+          showViewAll
+        />
+        <JournalPreview
+          entries={recentJournals}
+          loading={loading}
+          error={error}
+          onRetry={() => void load()}
+        />
       </div>
     </div>
   );
