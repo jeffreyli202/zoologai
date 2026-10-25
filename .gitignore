@@ -19,6 +19,11 @@ apps/web/.turbo/
 .env.*.local
 !.env.example
 
+# Browser cookies for yt-dlp (YouTube bot checks on cloud hosts)
+**/youtube-cookies.txt
+**/*cookies.txt
+!**/cookies.example.txt
+
 # Local SQLite databases
 *.db
 *.db-journal

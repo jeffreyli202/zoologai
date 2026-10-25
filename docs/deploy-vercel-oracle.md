@@ -151,3 +151,22 @@ sudo systemctl restart zoologai-api
 - Preview deployments are covered by `CORS_ORIGIN_REGEX` for `*.vercel.app`.
 - Free Oracle VMs can be reclaimed if idle for a long time — check current Always Free policy.
 - ARM shapes: if `opencv-python-headless` fails to install, use an x86 shape.
+
+### YouTube live on Oracle (cookies)
+
+Cloud IPs often hit YouTube’s “sign in to confirm you’re not a bot” wall. Export
+Netscape cookies from a browser session that can play the live stream, copy to
+the VM (e.g. `/opt/zoologai/apps/api/youtube-cookies.txt`), then in `.env`:
+
+```env
+YTDLP_COOKIES=/opt/zoologai/apps/api/youtube-cookies.txt
+```
+
+```bash
+chmod 600 /opt/zoologai/apps/api/youtube-cookies.txt
+# smoke-test:
+yt-dlp --cookies "$YTDLP_COOKIES" -g "https://www.youtube.com/watch?v=…"
+sudo systemctl restart zoologai-api
+```
+
+Never commit cookie files. Re-export when monitor ticks fail with the bot error again.

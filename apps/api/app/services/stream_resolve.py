@@ -12,8 +12,10 @@ Does not bypass logins, DRM, or paywalled streams.
 from __future__ import annotations
 
 import logging
+from pathlib import Path
 from urllib.parse import urlparse
 
+from app.config import get_settings
 from app.services.live_capture import LiveCaptureError
 
 logger = logging.getLogger("zoologai.stream_resolve")
@@ -70,18 +72,41 @@ def resolve_media_url(url: str) -> str:
 
     # Do not pass a restrictive `format` — live YouTube often only exposes
     # separate HLS video renditions; we pick a video URL from formats below.
-    ydl_opts = {
+    ydl_opts: dict = {
         "quiet": True,
         "no_warnings": True,
         "skip_download": True,
         "noplaylist": True,
     }
+
+    # Cloud hosts often hit YouTube's bot check; optional Netscape cookies.txt
+    # from an authorized browser session (YTDLP_COOKIES in .env).
+    cookies_path = (get_settings().ytdlp_cookies or "").strip()
+    if cookies_path:
+        cookie_file = Path(cookies_path).expanduser()
+        if not cookie_file.is_file():
+            raise LiveCaptureError(
+                f"YTDLP_COOKIES is set but file not found: {cookie_file}. "
+                "Export a Netscape cookies.txt from your browser and place it "
+                "on this host (never commit cookies to git)."
+            )
+        ydl_opts["cookiefile"] = str(cookie_file.resolve())
+        logger.info("yt-dlp using cookiefile %s", cookie_file)
+
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=False)
     except Exception as exc:
+        hint = ""
+        err_text = str(exc).lower()
+        if "sign in" in err_text or "not a bot" in err_text or "cookies" in err_text:
+            hint = (
+                " YouTube blocked this cloud IP — set YTDLP_COOKIES to a "
+                "Netscape cookies.txt exported while logged into YouTube, "
+                "then restart the API."
+            )
         raise LiveCaptureError(
-            f"Could not resolve authorized live page to a media URL: {exc}"
+            f"Could not resolve authorized live page to a media URL: {exc}.{hint}"
         ) from exc
 
     if not info:

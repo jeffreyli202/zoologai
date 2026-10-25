@@ -61,6 +61,11 @@ class Settings(BaseSettings):
     # Set empty string in .env to disable: CORS_ORIGIN_REGEX=
     cors_origin_regex: Optional[str] = r"https://.*\.vercel\.app"
 
+    # Netscape cookies.txt for yt-dlp (YouTube bot checks on cloud IPs).
+    # Export from a browser you use for YouTube; never commit this file.
+    # Example: ./youtube-cookies.txt or /opt/zoologai/apps/api/youtube-cookies.txt
+    ytdlp_cookies: Optional[str] = None
+
     def cors_origin_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
 
